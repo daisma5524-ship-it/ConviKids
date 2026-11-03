@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Portal Socioemocional Escolar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    
+    /* Fondo Turquesa con Patrón de Estrellas Blancas Sin Rellenar */
+    body { 
+      background-color: #5ce1e6; 
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><path d="M 30 5 Q 30 20 45 20 Q 30 20 30 35 Q 30 20 15 20 Q 30 20 30 5 Z" fill="none" stroke="%23ffffff" stroke-width="2" opacity="0.85"/><path d="M 90 65 Q 90 80 105 80 Q 90 80 90 95 Q 90 80 75 80 Q 90 80 90 65 Z" fill="none" stroke="%23ffffff" stroke-width="2" opacity="0.85"/><path d="M 100 15 Q 100 25 110 25 Q 100 25 100 35 Q 100 25 90 25 Q 100 25 100 15 Z" fill="none" stroke="%23ffffff" stroke-width="1.5" opacity="0.6"/><path d="M 20 80 Q 20 88 28 88 Q 20 88 20 96 Q 20 88 12 88 Q 20 88 20 80 Z" fill="none" stroke="%23ffffff" stroke-width="1.5" opacity="0.6"/></svg>');
+      background-repeat: repeat;
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      padding: 15px; 
+    }
+
+    .app-card { 
+      width: 100%; 
+      max-width: 900px; 
+      background: #ffffff; 
+      border-radius: 20px; 
+      overflow: hidden; 
+      min-height: 560px; 
+      display: flex; 
+      flex-direction: column; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+      position: relative; 
+      z-index: 10;
+    }
+    
+    .screen { display: none; flex-direction: column; padding: 25px; flex: 1; }
+    .screen.active { display: flex; }
+    
+    /* Login */
+    #screen-login { justify-content: center; align-items: center; text-align: center; }
+    .login-box { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .login-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; }
+    .login-title { font-size: 28px; color: #b5832a; font-weight: bold; }
+    .input-field, .select-field { width: 100%; padding: 12px 15px; background-color: #ffde59; border: none; border-radius: 12px; font-size: 15px; outline: none; color: #444; font-weight: 500; }
+    .select-field option { background-color: #ffffff; color: #333; }
+    .btn-next { background: #c68a4c; border: none; color: white; padding: 12px 30px; font-size: 22px; border-radius: 25px; cursor: pointer; margin-top: 5px; }
+    .btn-teacher-access { background: transparent; border: 1.5px solid #8c52ff; color: #8c52ff; font-size: 13px; font-weight: bold; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; }
+    
+    /* Chequeo Emocional */
+    #screen-chequeo { text-align: center; justify-content: center; align-items: center; border: 6px solid #e0c3fc; border-radius: 15px; margin: 10px; }
+    .emotions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
+    .emo-btn { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 40px; cursor: pointer; }
+    
+    /* Encabezado Misiones */
+    .unit-bar-wrapper { position: relative; width: 100%; background: #ffffff; display: flex; align-items: center; border-bottom: 2px solid #e0c3fc; }
+    .unit-bar-left { background: #ffffff; color: #333; padding: 12px 20px; font-weight: bold; font-size: 16px; flex: 1; }
+    .unit-bar-right { background: #e0c3fc; color: #2c2c54; padding: 12px 65px 12px 25px; font-weight: bold; font-size: 16px; border-top-right-radius: 18px; }
+    .top-logo-mini { width: 44px; height: 44px; position: absolute; top: 4px; right: 10px; z-index: 20; }
+
+    .mission-container { display: flex; gap: 20px; margin-top: 15px; flex: 1; }
+    .card-left { border: 2px solid #8c52ff; border-radius: 15px; padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-right { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .option-btn { border: 2px solid #8c52ff; padding: 12px; border-radius: 10px; background: white; text-align: left; cursor: pointer; }
+    
+    /* Autocontrol */
+    .autocontrol-card { border: 2px solid #8c52ff; border-radius: 15px; padding: 20px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .timer-text { color: #2c2c54; font-size: 15px; font-weight: 500; }
+    .thermometer-wrapper { width: 100%; max-width: 500px; height: 60px; position: relative; display: flex; justify-content: center; align-items: center; }
+    .ac-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; margin-top: 10px; }
+    .ac-btn { padding: 12px 8px; border: 2px solid transparent; border-radius: 10px; font-weight: 500; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
+    .impulsive { background-color: #ff758c; color: white; }
+    .assertive { background-color: #73f1d3; color: #1a4d43; }
+    .ac-btn.selected { border: 3px solid #ffbe0b !important; opacity: 0.8; font-weight: bold; }
+    .progress-tracker { font-size: 13px; font-weight: bold; color: #8c52ff; margin-top: 2px; }
+
+    /* Medallas en Feedback */
+    .medal-badge { font-size: 70px; margin-bottom: 5px; }
+    .medal-title { font-size: 20px; font-weight: bold; color: #b5832a; margin-bottom: 8px; }
+
+    /* Estilos del Panel Docente con Gráficas Comparativas */
+    .comparison-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 15px; }
+    .school-card { border: 2px solid #8c52ff; border-radius: 12px; padding: 15px; background: #fcf9ff; }
+    .school-card-title { font-weight: bold; color: #8c52ff; font-size: 14px; text-align: center; margin-bottom: 12px; }
+    .compare-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; font-size: 11.5px; }
+    .compare-label { font-weight: bold; color: #444; }
+    .compare-bars { display: flex; gap: 10px; align-items: center; }
+    .group-bar-container { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .bar-item { height: 14px; border-radius: 6px; color: white; font-size: 10px; font-weight: bold; padding-left: 6px; display: flex; align-items: center; transition: width 0.6s ease; }
+    .bg-grado-a { background-color: #38b6ff; }
+    .bg-grado-b { background-color: #cb6ce6; }
+
+    .table-container { width: 100%; max-height: 180px; overflow-y: auto; margin-top: 15px; border: 1px solid #ccc; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th { background: #8c52ff; color: white; padding: 8px; position: sticky; top: 0; }
+    td { padding: 8px; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+
+<div class="app-card">
+  
+  <!-- LOGO EMBLEMA SVG DE LA PLATAFORMA -->
+  <svg id="svg-logo-template" style="display:none;">
+    <g id="app-logo">
+      <circle cx="50" cy="50" r="48" fill="#a0f0e6" stroke="#5ce1e6" stroke-width="2"/>
+      <circle cx="50" cy="50" r="42" fill="#e6ffff"/>
+      <circle cx="30" cy="28" r="7" fill="#ffde59"/>
+      <path d="M 18 42 C 28 38, 38 48, 38 78 C 30 85, 20 85, 18 42 Z" fill="#ffde59"/>
+      <circle cx="50" cy="24" r="7" fill="#38b6ff"/>
+      <path d="M 36 42 L 64 42 L 58 82 Q 50 88 42 82 Z" fill="#38b6ff"/>
+      <circle cx="70" cy="28" r="7" fill="#cb6ce6"/>
+      <path d="M 82 42 C 72 38, 62 48, 62 78 C 70 85, 80 85, 82 42 Z" fill="#cb6ce6"/>
+    </g>
+  </svg>
+
+  <!-- 1. INICIO DE SESIÓN -->
+  <div id="screen-login" class="screen active">
+    <div class="login-box">
+      <div class="login-header">
+        <h1 class="login-title">Inicio de sesión</h1>
+        <svg viewBox="0 0 100 100" width="75" height="75"><use href="#app-logo"/></svg>
+      </div>
+
+      <select id="colegio" class="select-field" onchange="toggleCodigoField()">
+        <option value="" disabled selected>Selecciona tu Colegio</option>
+        <option value="Colegio Calasanz">Colegio Calasanz</option>
+        <option value="Institución Educativa Lucrecio Jaramillo">Institución Educativa Lucrecio Jaramillo</option>
+      </select>
+
+      <input type="text" id="codigoCalasanz" class="input-field" placeholder="Código de seguridad Colegio Calasanz">
+      <input type="text" id="codigoLucrecio" class="input-field" placeholder="Código de seguridad I.E. Lucrecio Jaramillo">
+
+      <select id="grado" class="select-field">
+        <option value="" disabled selected>Selecciona Grado</option>
+        <option value="A">Grado A</option>
+        <option value="B">Grado B</option>
+      </select>
+
+      <button class="btn-next" onclick="validarLogin()">➔</button>
+      
+      <button class="btn-teacher-access" onclick="accesoDocente()">🔐 Modo Docente / Estadísticas Comparativas</button>
+    </div>
+  </div>
+
+  <!-- 2. CHEQUEO EMOCIONAL -->
+  <div id="screen-chequeo" class="screen">
+    <h1 style="color: #1e5631;">¡Chequeo Emocional!</h1>
+    <p style="color: #666; margin-top: 10px;">¿Cómo te sientes hoy?</p>
+    <div class="emotions-grid">
+      <button class="emo-btn" style="background:#ffde59" onclick="selectEmotion('Feliz')">😊</button>
+      <button class="emo-btn" style="background:#38b6ff" onclick="selectEmotion('Triste')">😢</button>
+      <button class="emo-btn" style="background:#ff5757" onclick="selectEmotion('Enojado')">😡</button>
+      <button class="emo-btn" style="background:#cb6ce6" onclick="selectEmotion('Ansioso')">😨</button>
+      <button class="emo-btn" style="background:#7ed957" onclick="selectEmotion('Entusiasmado')">😁</button>
+      <button class="emo-btn" style="background:#d9d9d9" onclick="selectEmotion('Neutral')">😐</button>
+    </div>
+  </div>
+
+  <!-- 3. MISIÓN 1: RESOLUCIÓN DE PROBLEMAS -->
+  <div id="screen-mision1" class="screen" style="padding:0;">
+    <div class="unit-bar-wrapper">
+      <div class="unit-bar-left">Resolución de problemas</div>
+      <div class="unit-bar-right">Unidad 1</div>
+      <svg class="top-logo-mini" viewBox="0 0 100 100"><use href="#app-logo"/></svg>
+    </div>
+
+    <div style="padding:20px; flex:1;">
+      <div class="mission-container">
+        <div class="card-left">
+          <div>
+            <b>Misión 1: Un olvido en el trabajo en equipo.</b>
+            <p style="margin-top:10px; font-size:14px; color:#555;">Es viernes y el profesor anuncia un taller sorpresa en parejas. Tu compañero asignado olvidó sus materiales y demuestra poco interés en trabajar, lo que te provoca fastidio y enojo.</p>
+          </div>
+          <i style="color:#777;">¿Qué debes hacer?</i>
+        </div>
+        <div class="card-right">
+          <button class="option-btn" onclick="alert('Opción impulsiva. Intentemos una solución asertiva.')">Le gritas frente a la clase diciendo que por su culpa van a reprobar.</button>
+          <button class="option-btn" onclick="alert('Guardar la rabia no soluciona el problema.')">Te quedas en silencio, guardas la rabia y haces todo el trabajo solo/a</button>
+          <button class="option-btn" onclick="goToScreen('screen-autocontrol')">Pausas 3 segundos, respirar profundo y le propones compartir tus materiales y dividir el trabajo.</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. AUTOCONTROL CON TERMÓMETRO Y SELECCIÓN MÚLTIPLE -->
+  <div id="screen-autocontrol" class="screen" style="padding:0;">
+    <div class="unit-bar-wrapper">
+      <div class="unit-bar-left">Autocontrol</div>
+      <div class="unit-bar-right">Unidad 1</div>
+      <svg class="top-logo-mini" viewBox="0 0 100 100"><use href="#app-logo"/></svg>
+    </div>
+
+    <div style="padding:20px; flex:1; display:flex; align-items:center; justify-content:center;">
+      <div class="autocontrol-card">
+        <div class="timer-text">Tiempo restante: <b id="timer">7</b> segundos</div>
+
+        <div class="thermometer-wrapper">
+          <svg viewBox="0 0 450 60" width="100%" height="100%">
+            <path d="M 45 10 L 410 10 A 20 20 0 0 1 410 50 L 45 50 A 28 28 0 1 1 45 10 Z" fill="none" stroke="#2b2b52" stroke-width="6"/>
+            <path d="M 45 14 L 408 14 A 16 16 0 0 1 408 46 L 45 46 A 24 24 0 1 1 45 14 Z" fill="#eef2f7"/>
+            <circle cx="38" cy="30" r="18" fill="#ff577f"/>
+            <rect id="thermo-bar" x="52" y="22" width="340" height="16" rx="8" fill="#ff577f" style="transition: width 1s linear;"/>
+            <g fill="#2b2b52" opacity="0.7">
+              <rect x="90" y="30" width="4" height="10" rx="2"/><rect x="125" y="30" width="4" height="10" rx="2"/>
+              <rect x="160" y="30" width="4" height="10" rx="2"/><rect x="195" y="30" width="4" height="10" rx="2"/>
+              <rect x="230" y="30" width="4" height="10" rx="2"/><rect x="265" y="30" width="4" height="10" rx="2"/>
+              <rect x="300" y="30" width="4" height="10" rx="2"/><rect x="335" y="30" width="4" height="10" rx="2"/>
+              <rect x="370" y="30" width="4" height="10" rx="2"/>
+            </g>
+          </svg>
+        </div>
+
+        <p style="font-size:14px; color:#444; text-align:center; margin: 2px 0; max-width: 600px;">
+          Estudiaste mucho para un examen, pero amaneciste enfermo, no pudiste presentarlo y te pusieron mala nota.
+        </p>
+
+        <div class="progress-tracker">Selecciona las acciones asertivas: <span id="ac-count">0</span> / 3</div>
+
+        <div class="ac-grid">
+          <button class="ac-btn impulsive" onclick="alert('Reacción impulsiva. Elige una acción asertiva.')">No volver al colegio</button>
+          <button class="ac-btn assertive" id="ac-btn-1" onclick="selectAssertiveOption('ac-btn-1')">Contar hasta 10</button>
+          <button class="ac-btn assertive" id="ac-btn-2" onclick="selectAssertiveOption('ac-btn-2')">Respirar profundo</button>
+          <button class="ac-btn impulsive" onclick="alert('No te rindas. Intenta alternativas de apoyo.')">Rendirse</button>
+          <button class="ac-btn impulsive" onclick="alert('Pelear no resolverá la nota. Intenta una solución calmada.')">Pelear con el profesor</button>
+          <button class="ac-btn assertive" id="ac-btn-3" onclick="selectAssertiveOption('ac-btn-3')">Pedir ayuda al director de grupo</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. RETROALIMENTACIÓN CON MEDALLAS Y PUNTAJE -->
+  <div id="screen-feedback" class="screen" style="padding:0;">
+    <div class="unit-bar-wrapper">
+      <div class="unit-bar-left">Resolución de problemas</div>
+      <div class="unit-bar-right">Unidad 1</div>
+      <svg class="top-logo-mini" viewBox="0 0 100 100"><use href="#app-logo"/></svg>
+    </div>
+
+    <div style="padding:20px; flex:1; display:flex; align-items:center; justify-content:center;">
+      <div style="border:3px solid #73f1d3; border-radius:15px; padding:25px; text-align:center; width:100%; max-width:550px;">
+        <div id="medal-icon" class="medal-badge">🥇</div>
+        <div id="medal-title" class="medal-title">Medalla de Oro</div>
+
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin: 10px 0;">
+          <span style="font-size:35px;">⭐</span>
+          <span id="final-score" style="font-size:42px; color:#38b6ff; font-weight:bold;">20+</span>
+        </div>
+
+        <p id="final-message" style="margin-top:10px; font-size:14.5px; color:#444; line-height:1.4;">
+          Tu compañero agradece tu calma y asertividad. Se dividen las tareas y entregan un excelente trabajo a tiempo.
+        </p>
+
+        <button class="btn-next" style="margin-top:15px; font-size:16px;" onclick="location.reload()">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. PANEL DOCENTE COMPLETO CON COMPARATIVAS DE GRADOS Y TODAS LAS RESPUESTAS -->
+  <div id="screen-docente" class="screen" style="padding:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #8c52ff; padding-bottom:8px;">
+      <h2 style="color:#8c52ff; font-size:20px;">📊 Panel Docente: Comparativa A vs B y Respuestas</h2>
+      <button class="btn-teacher-access" onclick="goToScreen('screen-login')">⬅️ Salir</button>
+    </div>
+
+    <!-- Convención de Colores -->
+    <div style="display:flex; gap:15px; justify-content:center; margin-top:10px; font-size:12px; font-weight:bold;">
+      <span style="color:#38b6ff;">██ Grado A</span>
+      <span style="color:#cb6ce6;">██ Grado B</span>
+    </div>
+
+    <!-- Gráficas Comparativas entre Escuelas y Grados -->
+    <div class="comparison-container">
+      
+      <!-- Colegio Calasanz (A vs B) -->
+      <div class="school-card">
+        <div class="school-card-title">Colegio Calasanz (Grado A vs. Grado B)</div>
+        
+        <div class="compare-row">
+          <span class="compare-label">😊 Emoción Positiva (Feliz/Entusiasmado)</span>
+          <div class="group-bar-container">
+            <div id="calasanz-pos-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="calasanz-pos-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+
+        <div class="compare-row">
+          <span class="compare-label">😟 Emoción Desafiante (Triste/Enojado/Ansioso)</span>
+          <div class="group-bar-container">
+            <div id="calasanz-neg-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="calasanz-neg-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+
+        <div class="compare-row">
+          <span class="compare-label">🥇 Medalla de Oro (20+ Puntos)</span>
+          <div class="group-bar-container">
+            <div id="calasanz-oro-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="calasanz-oro-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- I.E. Lucrecio Jaramillo (A vs B) -->
+      <div class="school-card">
+        <div class="school-card-title">I.E. Lucrecio Jaramillo (Grado A vs. Grado B)</div>
+        
+        <div class="compare-row">
+          <span class="compare-label">😊 Emoción Positiva (Feliz/Entusiasmado)</span>
+          <div class="group-bar-container">
+            <div id="lucrecio-pos-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="lucrecio-pos-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+
+        <div class="compare-row">
+          <span class="compare-label">😟 Emoción Desafiante (Triste/Enojado/Ansioso)</span>
+          <div class="group-bar-container">
+            <div id="lucrecio-neg-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="lucrecio-neg-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+
+        <div class="compare-row">
+          <span class="compare-label">🥇 Medalla de Oro (20+ Puntos)</span>
+          <div class="group-bar-container">
+            <div id="lucrecio-oro-a" class="bar-item bg-grado-a" style="width:0%;">A: 0%</div>
+            <div id="lucrecio-oro-b" class="bar-item bg-grado-b" style="width:0%;">B: 0%</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tabla de Todas las Respuestas de Estudiantes -->
+    <div style="margin-top:12px; font-weight:bold; color:#8c52ff; font-size:13px;">📋 Lista Completa de Respuestas Registradas:</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Colegio</th>
+            <th>Grado</th>
+            <th>Código</th>
+            <th>Emoción Inicial</th>
+            <th>Puntaje</th>
+            <th>Medalla Obtenida</th>
+          </tr>
+        </thead>
+        <tbody id="teacher-table-body">
+          <!-- Carga dinámicamente todas las filas de estudiantes -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var datosApp = { codigo: '', colegio: '', grado: '', emocion: '', puntaje: '20+', medalla: '🥇 Oro' };
+  var timerCount = 7, interval;
+  var respuestasAssertivas = new Set();
+  
+  // Base de datos completa con registros de ejemplo para ambos colegios y grados
+  var registroEstudiantes = [
+    { colegio: 'Colegio Calasanz', grado: 'A', codigo: 'CALA-A01', emocion: 'Feliz', puntaje: '20+', medalla: '🥇 Oro' },
+    { colegio: 'Colegio Calasanz', grado: 'A', codigo: 'CALA-A02', emocion: 'Entusiasmado', puntaje: '20+', medalla: '🥇 Oro' },
+    { colegio: 'Colegio Calasanz', grado: 'B', codigo: 'CALA-B01', emocion: 'Ansioso', puntaje: '15', medalla: '🥈 Plata' },
+    { colegio: 'Colegio Calasanz', grado: 'B', codigo: 'CALA-B02', emocion: 'Enojado', puntaje: '10', medalla: '🥉 Bronce' },
+    { colegio: 'Institución Educativa Lucrecio Jaramillo', grado: 'A', codigo: 'LUC-A01', emocion: 'Feliz', puntaje: '20+', medalla: '🥇 Oro' },
+    { colegio: 'Institución Educativa Lucrecio Jaramillo', grado: 'A', codigo: 'LUC-A02', emocion: 'Triste', puntaje: '15', medalla: '🥈 Plata' },
+    { colegio: 'Institución Educativa Lucrecio Jaramillo', grado: 'B', codigo: 'LUC-B01', emocion: 'Neutral', puntaje: '20+', medalla: '🥇 Oro' },
+    { colegio: 'Institución Educativa Lucrecio Jaramillo', grado: 'B', codigo: 'LUC-B02', emocion: 'Enojado', puntaje: '20+', medalla: '🥇 Oro' }
+  ];
+
+  function toggleCodigoField() {
+    var colegio = document.getElementById('colegio').value;
+    var fieldCalasanz = document.getElementById('codigoCalasanz');
+    var fieldLucrecio = document.getElementById('codigoLucrecio');
+
+    if (colegio === 'Colegio Calasanz') {
+      fieldCalasanz.style.display = 'block';
+      fieldLucrecio.style.display = 'none';
+      fieldLucrecio.value = '';
+    } else if (colegio === 'Institución Educativa Lucrecio Jaramillo') {
+      fieldCalasanz.style.display = 'none';
+      fieldLucrecio.style.display = 'block';
+      fieldCalasanz.value = '';
+    } else {
+      fieldCalasanz.style.display = 'block';
+      fieldLucrecio.style.display = 'block';
+    }
+  }
+
+  function validarLogin() {
+    var colegio = document.getElementById('colegio').value;
+    var grado = document.getElementById('grado').value;
+    var codigoCalasanz = document.getElementById('codigoCalasanz').value;
+    var codigoLucrecio = document.getElementById('codigoLucrecio').value;
+
+    if (!colegio) { alert('Por favor selecciona tu colegio.'); return; }
+    if (colegio === 'Colegio Calasanz' && !codigoCalasanz) { alert('Ingresa el código para Colegio Calasanz.'); return; }
+    if (colegio === 'Institución Educativa Lucrecio Jaramillo' && !codigoLucrecio) { alert('Ingresa el código para I.E. Lucrecio Jaramillo.'); return; }
+    if (!grado) { alert('Por favor selecciona un grado (A o B).'); return; }
+
+    datosApp.colegio = colegio;
+    datosApp.grado = grado;
+    datosApp.codigo = (colegio === 'Colegio Calasanz') ? codigoCalasanz : codigoLucrecio;
+
+    goToScreen('screen-chequeo');
+  }
+
+  function accesoDocente() {
+    var clave = prompt("Ingresa la clave de acceso docente:");
+    if (clave === "admin123") {
+      actualizarGraficasComparativas();
+      goToScreen('screen-docente');
+    } else if (clave !== null) {
+      alert("Clave incorrecta. Solo los profesores pueden acceder a las estadísticas.");
+    }
+  }
+
+  function goToScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    
+    if (screenId === 'screen-autocontrol') {
+      timerCount = 7;
+      respuestasAssertivas.clear();
+      document.getElementById('ac-count').innerText = 0;
+      
+      ['ac-btn-1', 'ac-btn-2', 'ac-btn-3'].forEach(id => {
+        var btn = document.getElementById(id);
+        btn.classList.remove('selected');
+        btn.disabled = false;
+      });
+
+      document.getElementById('timer').innerText = timerCount;
+      document.getElementById('thermo-bar').setAttribute('width', '340');
+      
+      clearInterval(interval);
+      interval = setInterval(() => {
+        timerCount--;
+        if (timerCount >= 0) {
+          document.getElementById('timer').innerText = timerCount;
+          var newWidth = Math.max(0, (timerCount / 7) * 340);
+          document.getElementById('thermo-bar').setAttribute('width', newWidth);
+        } else {
+          clearInterval(interval);
+        }
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+  }
+
+  function selectEmotion(emo) {
+    datosApp.emocion = emo;
+    goToScreen('screen-mision1');
+  }
+
+  function selectAssertiveOption(btnId) {
+    var btn = document.getElementById(btnId);
+    if (!respuestasAssertivas.has(btnId)) {
+      respuestasAssertivas.add(btnId);
+      btn.classList.add('selected');
+      btn.innerText += " ✔️";
+      btn.disabled = true;
+      
+      document.getElementById('ac-count').innerText = respuestasAssertivas.size;
+      
+      if (respuestasAssertivas.size === 3) {
+        setTimeout(() => {
+          calcularMedallaYFinalizar();
+        }, 400);
+      }
+    }
+  }
+
+  function calcularMedallaYFinalizar() {
+    var numAciertos = respuestasAssertivas.size;
+    var medalla = "";
+    var tituloMedalla = "";
+    var puntos = "";
+    var mensaje = "";
+
+    if (numAciertos === 3 && timerCount > 0) {
+      medalla = "🥇";
+      tituloMedalla = "Medalla de Oro - Maestro de la Calma";
+      puntos = "20+";
+      mensaje = "¡Excelente manejo emocional! Respondiste con asertividad y autorregulación plena.";
+    } else if (numAciertos === 2) {
+      medalla = "🥈";
+      tituloMedalla = "Medalla de Plata - Ejemplo de Autocontrol";
+      puntos = "15";
+      mensaje = "¡Muy buen trabajo! Supiste mantener la calma y elegir soluciones asertivas.";
+    } else {
+      medalla = "🥉";
+      tituloMedalla = "Medalla de Bronce - En Camino a la Calma";
+      puntos = "10";
+      mensaje = "Vas por buen camino. Sigue practicando la respiración profunda para autorregularte.";
+    }
+
+    datosApp.puntaje = puntos;
+    datosApp.medalla = medalla + " " + tituloMedalla;
+
+    document.getElementById('medal-icon').innerText = medalla;
+    document.getElementById('medal-title').innerText = tituloMedalla;
+    document.getElementById('final-score').innerText = puntos;
+    document.getElementById('final-message').innerText = mensaje;
+
+    registroEstudiantes.push({
+      colegio: datosApp.colegio,
+      grado: datosApp.grado,
+      codigo: datosApp.codigo,
+      emocion: datosApp.emocion,
+      puntaje: datosApp.puntaje,
+      medalla: datosApp.medalla
+    });
+
+    finalizarMision();
+  }
+
+  function finalizarMision() {
+    clearInterval(interval);
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(() => {
+        goToScreen('screen-feedback');
+      }).guardarRespuesta(datosApp);
+    } else {
+      goToScreen('screen-feedback');
+    }
+  }
+
+  // CÁLCULO ESTADÍSTICO DE LAS BARRAS COMPARATIVAS (A vs. B)
+  function actualizarGraficasComparativas() {
+    var stats = {
+      Calasanz: { A: { total:0, pos:0, neg:0, oro:0 }, B: { total:0, pos:0, neg:0, oro:0 } },
+      Lucrecio: { A: { total:0, pos:0, neg:0, oro:0 }, B: { total:0, pos:0, neg:0, oro:0 } }
+    };
+
+    registroEstudiantes.forEach(st => {
+      var esc = st.colegio.includes('Calasanz') ? 'Calasanz' : 'Lucrecio';
+      var gr = (st.grado === 'A') ? 'A' : 'B';
+      
+      stats[esc][gr].total++;
+      if (st.emocion === 'Feliz' || st.emocion === 'Entusiasmado') stats[esc][gr].pos++;
+      if (st.emocion === 'Triste' || st.emocion === 'Enojado' || st.emocion === 'Ansioso') stats[esc][gr].neg++;
+      if (st.medalla.includes('Oro')) stats[esc][gr].oro++;
+    });
+
+    function calcPct(val, tot) { return tot > 0 ? Math.round((val / tot) * 100) : 0; }
+
+    // Actualización Calasanz A vs B
+    var cA = stats.Calasanz.A, cB = stats.Calasanz.B;
+    updateBar('calasanz-pos-a', 'A: ' + calcPct(cA.pos, cA.total) + '%', calcPct(cA.pos, cA.total));
+    updateBar('calasanz-pos-b', 'B: ' + calcPct(cB.pos, cB.total) + '%', calcPct(cB.pos, cB.total));
+    updateBar('calasanz-neg-a', 'A: ' + calcPct(cA.neg, cA.total) + '%', calcPct(cA.neg, cA.total));
+    updateBar('calasanz-neg-b', 'B: ' + calcPct(cB.neg, cB.total) + '%', calcPct(cB.neg, cB.total));
+    updateBar('calasanz-oro-a', 'A: ' + calcPct(cA.oro, cA.total) + '%', calcPct(cA.oro, cA.total));
+    updateBar('calasanz-oro-b', 'B: ' + calcPct(cB.oro, cB.total) + '%', calcPct(cB.oro, cB.total));
+
+    // Actualización Lucrecio A vs B
+    var lA = stats.Lucrecio.A, lB = stats.Lucrecio.B;
+    updateBar('lucrecio-pos-a', 'A: ' + calcPct(lA.pos, lA.total) + '%', calcPct(lA.pos, lA.total));
+    updateBar('lucrecio-pos-b', 'B: ' + calcPct(lB.pos, lB.total) + '%', calcPct(lB.pos, lB.total));
+    updateBar('lucrecio-neg-a', 'A: ' + calcPct(lA.neg, lA.total) + '%', calcPct(lA.neg, lA.total));
+    updateBar('lucrecio-neg-b', 'B: ' + calcPct(lB.neg, lB.total) + '%', calcPct(lB.neg, lB.total));
+    updateBar('lucrecio-oro-a', 'A: ' + calcPct(lA.oro, lA.total) + '%', calcPct(lA.oro, lA.total));
+    updateBar('lucrecio-oro-b', 'B: ' + calcPct(lB.oro, lB.total) + '%', calcPct(lB.oro, lB.total));
+
+    // Cargar la Tabla con TODAS las respuestas
+    var tbody = document.getElementById('teacher-table-body');
+    tbody.innerHTML = '';
+    registroEstudiantes.forEach(st => {
+      var tr = document.createElement('tr');
+      tr.innerHTML = `<td>${st.colegio}</td><td>Grado ${st.grado}</td><td>${st.codigo}</td><td>${st.emocion}</td><td><b>${st.puntaje}</b></td><td>${st.medalla}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateBar(id, text, pct) {
+    var el = document.getElementById(id);
+    el.innerText = text;
+    el.style.width = Math.max(pct, 12) + '%';
+  }
+</script>
+
+</body>
+</html>
